@@ -7,8 +7,6 @@
 #include <mswsock.h>
 #include <array>
 
-#include <iostream>
-
 namespace coronet {
 
 std::error_code server::create(const std::string& host, const std::string& port, type type) noexcept {
@@ -93,15 +91,11 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
         co_return;
       }
     }
-    std::cout << "accepting: " << socket.value() << std::endl;
     bytes = co_await event;
-    std::cout << "accepted: " << socket.value() << std::endl;
     WSAGetOverlappedResult(as<SOCKET>(), &event, &bytes, FALSE, &flags);
     if (const auto code = WSAGetLastError()) {
-      if (code == WSAENOTSOCK) {
-        co_return;
-      }
-      continue;  // ignore connection errors
+      ec_ = { code, error_category() };
+      co_return;
     }
     co_yield socket;
   }

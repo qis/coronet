@@ -22,7 +22,11 @@ public:
   }
 
   void await_suspend(handle_type handle) noexcept {
-    handle_ = handle;
+    if (ready_) {
+      handle.resume();
+    } else {
+      handle_ = handle;
+    }
   }
 
   constexpr auto await_resume() noexcept {
@@ -32,8 +36,8 @@ public:
   void operator()(DWORD size) noexcept {
     size_ = size;
     ready_ = true;
-    if (handle_) {
-      handle_.resume();
+    if (auto handle = std::exchange(handle_, nullptr)) {
+      handle.resume();
     }
   }
 

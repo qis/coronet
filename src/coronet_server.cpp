@@ -2,6 +2,7 @@
 #include <coronet/server.h>
 #include <coronet/socket.h>
 #include <coronet/signal.h>
+#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -46,6 +47,7 @@ int main(int argc, char* argv[]) {
   const auto host = argc > 1 ? argv[1] : "127.0.0.1";
   const auto port = argc > 2 ? argv[2] : "8080";
   const auto bufs = argc > 3 ? std::stoull(argv[3]) : 40960ull;
+  std::cout << std::boolalpha;
 
   // Create event loop.
   coronet::events events;

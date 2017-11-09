@@ -6,8 +6,6 @@
 #include <ws2tcpip.h>
 #include <mswsock.h>
 
-#include <iostream>
-
 namespace coronet {
 
 std::error_code socket::create(family family, type type, int protocol) noexcept {
@@ -39,7 +37,6 @@ std::error_code socket::set(option option, bool enable) noexcept {
   auto value_data = reinterpret_cast<const char*>(&value);
   auto value_size = static_cast<int>(sizeof(value));
   if (::setsockopt(as<SOCKET>(), SOL_SOCKET, sockopt, value_data, value_size) == SOCKET_ERROR) {
-    std::cout << "socket: " << handle_ << ' ' << reinterpret_cast<std::intptr_t>(this) << std::endl;
     return { WSAGetLastError(), error_category() };
   }
   return {};
@@ -59,18 +56,18 @@ async_generator<std::string_view> socket::recv(void* data, std::size_t size) noe
     if (WSARecv(as<SOCKET>(), &buffer, 1, &bytes, &flags, &event, nullptr) == SOCKET_ERROR) {
       if (const auto code = WSAGetLastError(); code != ERROR_IO_PENDING) {
         ec_ = { code, error_category() };
-        break;
+        co_return;
       }
     }
     bytes = co_await event;
     WSAGetOverlappedResult(as<SOCKET>(), &event, &bytes, FALSE, &flags);
     if (const auto code = WSAGetLastError()) {
       ec_ = { code, error_category() };
-      break;
+      co_return;
     }
     if (!bytes) {
       ec_ = { static_cast<int>(errc::eof), error_category() };
-      break;
+      co_return;
     }
     std::string_view result(reinterpret_cast<const char*>(data), bytes);
     co_yield result;

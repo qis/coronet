@@ -5,7 +5,7 @@ CXX	:= clang++
 CMAKE	:= CC=$(CC) CXX=$(CXX) cmake -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
 BUILD	!= echo $(PWD) | tr '/' '-' | sed 's|^-|/var/build/|'
 PROJECT	!= grep "^project" CMakeLists.txt | cut -c9- | cut -d " " -f1 | tr "[:upper:]" "[:lower:]"
-HEADERS	!= find src -type f -name '*.h'
+HEADERS	!= find src include -type f -name '*.h'
 SOURCES	!= find src -type f -name '*.cpp'
 
 all: debug

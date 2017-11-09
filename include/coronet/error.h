@@ -18,7 +18,7 @@ inline std::error_code make_error_code(errc code) noexcept {
 
 namespace std {
 
-template<>
+template <>
 struct is_error_code_enum<coronet::errc> : true_type {};
 
 }  // namespace std

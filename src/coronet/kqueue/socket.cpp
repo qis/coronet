@@ -47,22 +47,26 @@ async_generator<std::string_view> socket::recv(void* data, std::size_t size) noe
     if (rv < 0) {
       if (errno != EAGAIN) {
         ec_ = { errno, error_category() };
-        break;
+        co_return;
       }
       const auto available = co_await queue(events_.get().value(), handle_, EVFILT_READ);
       if (available < 0) {
         ec_ = { static_cast<int>(errc::cancelled), error_category() };
-        break;
+        co_return;
       }
       if (available == 0) {
         ec_ = { static_cast<int>(errc::eof), error_category() };
-        break;
+        co_return;
       }
-      continue;
+      rv = ::read(handle_, data, size);
+      if (rv < 0) {
+        ec_ = { errno, error_category() };
+        co_return;
+      }
     }
     if (rv == 0) {
       ec_ = { static_cast<int>(errc::eof), error_category() };
-      break;
+      co_return;
     }
     std::string_view result(reinterpret_cast<const char*>(data), static_cast<std::size_t>(rv));
     co_yield result;
@@ -86,7 +90,10 @@ async<std::error_code> socket::send(std::string_view message) noexcept {
       if (available == 0) {
         co_return{ static_cast<int>(errc::eof), error_category() };
       }
-      continue;
+      rv = ::write(handle_, data, size);
+      if (rv < 0) {
+        co_return{ errno, error_category() };
+      }
     }
     if (rv == 0) {
       co_return { static_cast<int>(errc::eof), error_category() };
