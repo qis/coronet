@@ -62,7 +62,6 @@ int main(int argc, char* argv[]) {
   }
 
   // Accept incoming connections.
-  print("calling: accept(server, bufs)");
   accept(server, bufs);
 
   // Run event loop.

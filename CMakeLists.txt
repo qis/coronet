@@ -60,11 +60,6 @@ if(WIN32)
   target_link_libraries(coronet PUBLIC ws2_32 mswsock)
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  target_include_directories(coronet PRIVATE /usr/include/kqueue)
-  target_link_libraries(coronet PUBLIC kqueue)
-endif()
-
 #find_package(OpenSSL)
 #
 #if(OPENSSL_FOUND)

@@ -48,7 +48,6 @@ std::error_code server::create(const std::string& host, const std::string& port,
 }
 
 async_generator<socket> server::accept(std::size_t backlog) noexcept {
-  print("async_generator<socket> server::accept(std::size_t backlog) entered");
   constexpr DWORD salen = sizeof(struct sockaddr_storage) + 16;
   ec_.clear();
 
@@ -78,16 +77,13 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
     DWORD bytes = 0;
     DWORD flags = 0;
     event event;
-    print("calling: AcceptEx(as<SOCKET>(), socket.as<SOCKET>(), buffer.data(), 0, salen, salen, &bytes, &event)");
     if (!AcceptEx(as<SOCKET>(), socket.as<SOCKET>(), buffer.data(), 0, salen, salen, &bytes, &event)) {
       if (const auto code = WSAGetLastError(); code != ERROR_IO_PENDING) {
         ec_ = { code, error_category() };
         co_return;
       }
     }
-    print("calling: co_await event");
     bytes = co_await event;
-    print("calling: WSAGetOverlappedResult(as<SOCKET>(), &event, &bytes, FALSE, &flags)");
     WSAGetOverlappedResult(as<SOCKET>(), &event, &bytes, FALSE, &flags);
     if (const auto code = WSAGetLastError()) {
       if (code == WSAENOTSOCK) {
@@ -95,7 +91,6 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
       }
       continue;  // ignore connection errors
     }
-    print("calling: co_yield socket");
     co_yield socket;
   }
   co_return;
