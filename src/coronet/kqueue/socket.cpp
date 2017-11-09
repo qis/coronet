@@ -2,6 +2,7 @@
 #include <coronet/address.h>
 #include <coronet/kqueue/event.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <unistd.h>
 
 namespace coronet {
@@ -22,6 +23,18 @@ std::error_code socket::create(family family, type type, int protocol) noexcept 
     return ec;
   }
   *this = std::move(socket);
+  return {};
+}
+
+std::error_code socket::set(option option, bool enable) noexcept {
+  auto sockopt = 0;
+  switch (option) {
+  case option::nodelay: sockopt = TCP_NODELAY; break;
+  }
+  auto value = enable ? 1 : 0;
+  if (::setsockopt(handle_, SOL_SOCKET, sockopt, &value, sizeof(value)) < 0) {
+    return { errno, error_category() };
+  }
   return {};
 }
 

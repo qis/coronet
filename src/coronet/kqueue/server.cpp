@@ -23,6 +23,12 @@ std::error_code server::create(const std::string& host, const std::string& port,
     return ec;
   }
 
+  // Set SO_REUSEADDR socket option.
+  auto reuseaddr = 1;
+  if (::setsockopt(server.value(), SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
+    return { errno, error_category() };
+  }
+
   // Bind listening socket to the given address.
   if (::bind(server.value(), address.addr(), address.addrlen()) < 0) {
     return { errno, error_category() };

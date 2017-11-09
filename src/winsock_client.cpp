@@ -118,6 +118,14 @@ int main(int argc, char* argv[]) {
     return WSAGetLastError();
   }
 
+  BOOL nodelay = TRUE;
+  auto nodelay_data = reinterpret_cast<const char*>(&nodelay);
+  auto nodelay_size = static_cast<int>(sizeof(nodelay));
+  if (::setsockopt(socket, SOL_SOCKET, TCP_NODELAY, nodelay_data, nodelay_size) == SOCKET_ERROR) {
+    std::cerr << "could not set nodelay option" << std::endl;
+    return WSAGetLastError();
+  }
+
   std::string buffer;
   buffer.resize(bufs);
   std::generate(buffer.begin(), buffer.end(), [c = '0']() mutable {

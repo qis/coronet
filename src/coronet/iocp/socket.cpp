@@ -6,6 +6,8 @@
 #include <ws2tcpip.h>
 #include <mswsock.h>
 
+#include <iostream>
+
 namespace coronet {
 
 std::error_code socket::create(family family, type type, int protocol) noexcept {
@@ -25,6 +27,21 @@ std::error_code socket::create(family family, type type, int protocol) noexcept 
     return ec;
   }
   *this = std::move(socket);
+  return {};
+}
+
+std::error_code socket::set(option option, bool enable) noexcept {
+  auto sockopt = 0;
+  switch (option) {
+  case option::nodelay: sockopt = TCP_NODELAY; break;
+  }
+  BOOL value = enable ? TRUE : FALSE;
+  auto value_data = reinterpret_cast<const char*>(&value);
+  auto value_size = static_cast<int>(sizeof(value));
+  if (::setsockopt(as<SOCKET>(), SOL_SOCKET, sockopt, value_data, value_size) == SOCKET_ERROR) {
+    std::cout << "socket: " << handle_ << ' ' << reinterpret_cast<std::intptr_t>(this) << std::endl;
+    return { WSAGetLastError(), error_category() };
+  }
   return {};
 }
 

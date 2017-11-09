@@ -90,6 +90,14 @@ int main(int argc, char* argv[]) {
     return WSAGetLastError();
   }
 
+  BOOL reuseaddr = TRUE;
+  auto reuseaddr_data = reinterpret_cast<const char*>(&reuseaddr);
+  auto reuseaddr_size = static_cast<int>(sizeof(reuseaddr));
+  if (::setsockopt(server, SOL_SOCKET, SO_REUSEADDR, reuseaddr_data, reuseaddr_size) == SOCKET_ERROR) {
+    std::cerr << "could not set reuse address option" << std::endl;
+    return WSAGetLastError();
+  }
+
   if (::bind(server, info->ai_addr, static_cast<int>(info->ai_addrlen)) == SOCKET_ERROR) {
     std::cerr << "could not bind to " << host << ':' << port << std::endl;
     return WSAGetLastError();
@@ -112,6 +120,13 @@ int main(int argc, char* argv[]) {
     if (!socket) {
       std::cerr << "could not accept client connection" << std::endl;
       continue;
+    }
+
+    BOOL nodelay = TRUE;
+    auto nodelay_data = reinterpret_cast<const char*>(&nodelay);
+    auto nodelay_size = static_cast<int>(sizeof(nodelay));
+    if (::setsockopt(server, SOL_SOCKET, TCP_NODELAY, nodelay_data, nodelay_size) == SOCKET_ERROR) {
+      std::cerr << "could not set nodelay option" << std::endl;
     }
 
     auto done = false;

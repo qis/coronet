@@ -17,6 +17,10 @@ enum class type {
   udp,
 };
 
+enum class option {
+  nodelay,
+};
+
 class socket : public handle<socket> {
 public:
   explicit socket(events& events) noexcept : events_(events) {
@@ -27,6 +31,9 @@ public:
 
   // Creates socket.
   std::error_code create(family family, type type, int protocol = 0) noexcept;
+
+  // Sets socket option.
+  std::error_code set(option option, bool enable) noexcept;
 
   // Reads data from socket.
   // Completes range on closed connection.

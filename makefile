@@ -14,8 +14,8 @@ run: debug
 	@sudo build/llvm/debug/$(PROJECT)_server
 
 dbg: debug
-	@#lldb -o run build/llvm/debug/$(PROJECT)_server
-	@gdb -x run build/llvm/debug/$(PROJECT)_server
+	@lldb -o run build/llvm/debug/$(PROJECT)_server
+	@#gdb -x run build/llvm/debug/$(PROJECT)_server
 
 test: debug
 	@cd build/llvm/debug && ctest

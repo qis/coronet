@@ -7,6 +7,8 @@
 #include <mswsock.h>
 #include <array>
 
+#include <iostream>
+
 namespace coronet {
 
 std::error_code server::create(const std::string& host, const std::string& port, type type) noexcept {
@@ -24,6 +26,14 @@ std::error_code server::create(const std::string& host, const std::string& port,
   server server(events_);
   if (const auto ec = static_cast<socket&>(server).create(address.family(), address.type(), address.protocol())) {
     return ec;
+  }
+
+  // Set SO_REUSEADDR socket option.
+  BOOL reuseaddr = TRUE;
+  const auto reuseaddr_data = reinterpret_cast<const char*>(&reuseaddr);
+  const auto reuseaddr_size = static_cast<int>(sizeof(reuseaddr));
+  if (::setsockopt(server.as<SOCKET>(), SOL_SOCKET, SO_REUSEADDR, reuseaddr_data, reuseaddr_size) == SOCKET_ERROR) {
+    return { WSAGetLastError(), error_category() };
   }
 
   // Bind listening socket to the given address.
@@ -83,7 +93,9 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
         co_return;
       }
     }
+    std::cout << "accepting: " << socket.value() << std::endl;
     bytes = co_await event;
+    std::cout << "accepted: " << socket.value() << std::endl;
     WSAGetOverlappedResult(as<SOCKET>(), &event, &bytes, FALSE, &flags);
     if (const auto code = WSAGetLastError()) {
       if (code == WSAENOTSOCK) {

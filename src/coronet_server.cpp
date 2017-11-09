@@ -28,6 +28,9 @@ coronet::task handle(coronet::socket socket, std::size_t bufs) noexcept {
 
 coronet::task accept(coronet::server& server, std::size_t bufs) noexcept {
   for co_await(auto& socket : server.accept()) {
+    if (const auto ec = socket.set(coronet::option::nodelay, true)) {
+      std::cerr << socket << ": " << ec << " set nodelay error: " << ec.message() << '\n';
+    }
     handle(std::move(socket), bufs);
   }
   if (const auto ec = server.ec()) {

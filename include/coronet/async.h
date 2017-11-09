@@ -259,7 +259,6 @@ public:
 
     iterator& operator++() noexcept {
       handle_.promise().value_ = nullptr;
-      handle_.resume();
       if (handle_.done()) {
         handle_ = nullptr;
       }
@@ -285,11 +284,12 @@ public:
     }
 
     bool await_ready() noexcept {
-      return !handle_ || handle_.promise().value_ != nullptr;
+      return !handle_ || handle_.promise().value_;
     }
 
     void await_suspend(coroutine_handle<> consumer) noexcept {
       handle_.promise().consumer_ = consumer;
+      handle_.resume();
     }
 
     iterator await_resume() noexcept {

@@ -81,6 +81,13 @@ int main(int argc, char* argv[]) {
     return errno;
   }
 
+  auto value = 1;
+  auto value_size = static_cast<socklen_t>(sizeof(value));
+  if (::setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &value, value_size) < 0) {
+    std::cerr << "could not set reuse address option" << std::endl;
+    return errno;
+  }
+
   if (::bind(server, info->ai_addr, static_cast<socklen_t>(info->ai_addrlen)) < 0) {
     std::cerr << "could not bind to " << host << ':' << port << std::endl;
     return errno;
@@ -103,6 +110,11 @@ int main(int argc, char* argv[]) {
     if (!socket) {
       std::cerr << "could not accept client connection" << std::endl;
       continue;
+    }
+    auto value = 1;
+    auto value_size = static_cast<socklen_t>(sizeof(value));
+    if (::setsockopt(socket, SOL_SOCKET, TCP_NODELAY, &value, value_size) < 0) {
+      std::cerr << "could not set nodelay option" << std::endl;
     }
 
     auto done = false;

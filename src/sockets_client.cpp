@@ -107,6 +107,13 @@ int main(int argc, char* argv[]) {
     return errno;
   }
 
+  auto nodelay = 1;
+  auto nodelay_size = static_cast<socklen_t>(sizeof(nodelay));
+  if (::setsockopt(socket, SOL_SOCKET, TCP_NODELAY, &nodelay, nodelay_size) < 0) {
+    std::cerr << "could not set nodelay option" << std::endl;
+    return errno;
+  }
+
   std::string buffer;
   buffer.resize(bufs);
   std::generate(buffer.begin(), buffer.end(), [c = '0']() mutable {
