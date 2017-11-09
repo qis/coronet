@@ -3,8 +3,6 @@
 #include <optional>
 #include <utility>
 
-#include <cstdio>
-
 namespace coronet {
 
 using std::experimental::coroutine_handle;
@@ -74,10 +72,6 @@ public:
       std::abort();
     }
 
-    ~promise_type() {
-      puts("async::promise_type::~promise_type()");
-    }
-
     std::optional<T> value_;
     coroutine_handle<> handle_ = nullptr;
   };
@@ -96,11 +90,7 @@ public:
     }
   }
 
-  ~async() {
-    //if (auto handle = std::exchange(handle_, nullptr)) {
-    //  handle.destroy();
-    //}
-  }
+  ~async() = default;
 
   bool await_ready() noexcept {
     return !handle_ || handle_.promise().value_;
@@ -268,10 +258,6 @@ struct async_generator {
       std::abort();
     }
 
-    ~promise_type() {
-      puts("async_generator::promise_type::~promise_type()");
-    }
-
     coroutine_handle<> await_iterator_handle_ = nullptr;
     coroutine_handle<> await_consumer_handle_ = nullptr;
     T* value_ = nullptr;
@@ -292,11 +278,7 @@ struct async_generator {
     return *this;
   }
 
-  ~async_generator() {
-    //if (auto handle = std::exchange(handle_, nullptr)) {
-    //  handle.destroy();
-    //}
-  }
+  ~async_generator() = default;
 
   await_iterator<T, promise_type> begin() noexcept {
     return { handle_ };
