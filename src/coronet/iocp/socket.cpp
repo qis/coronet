@@ -84,22 +84,22 @@ async<std::error_code> socket::send(std::string_view message) noexcept {
     event event;
     if (WSASend(as<SOCKET>(), &data, 1, &bytes, 0, &event, nullptr) == SOCKET_ERROR) {
       if (const auto code = WSAGetLastError(); code != ERROR_IO_PENDING) {
-        co_return { code, error_category() };
+        co_return std::error_code(code, error_category());
       }
     }
     bytes = co_await event;
     DWORD flags = 0;
     WSAGetOverlappedResult(as<SOCKET>(), &event, &bytes, FALSE, &flags);
     if (const auto code = WSAGetLastError()) {
-      co_return { code, error_category() };
+      co_return std::error_code(code, error_category());
     }
     if (!bytes) {
-      co_return { static_cast<int>(errc::eof), error_category() };
+      co_return std::error_code(static_cast<int>(errc::eof), error_category());
     }
     data.buf += bytes;
     data.len -= bytes > data.len ? data.len : bytes;
   }
-  co_return {};
+  co_return std::error_code{};
 }
 
 // clang-format on
