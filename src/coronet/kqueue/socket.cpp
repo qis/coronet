@@ -42,6 +42,7 @@ std::error_code socket::set(option option, bool enable) noexcept {
 
 async_generator<std::string_view> socket::recv(void* data, std::size_t size) noexcept {
   ec_.clear();
+  event event(events_.get().value(), handle_, EVFILT_READ);
   while (true) {
     std::int64_t rv = ::read(handle_, data, size);
     if (rv < 0) {
@@ -49,7 +50,7 @@ async_generator<std::string_view> socket::recv(void* data, std::size_t size) noe
         ec_ = { errno, error_category() };
         co_return;
       }
-      const auto available = co_await queue(events_.get().value(), handle_, EVFILT_READ);
+      const auto available = co_await event;
       if (available < 0) {
         ec_ = { static_cast<int>(errc::cancelled), error_category() };
         co_return;
@@ -77,13 +78,14 @@ async_generator<std::string_view> socket::recv(void* data, std::size_t size) noe
 async<std::error_code> socket::send(std::string_view message) noexcept {
   auto data = message.data();
   auto size = message.size();
+  event event(events_.get().value(), handle_, EVFILT_WRITE);
   while (size > 0) {
     std::int64_t rv = ::write(handle_, data, size);
     if (rv < 0) {
       if (errno != EAGAIN) {
         co_return { errno, error_category() };
       }
-      const auto available = co_await queue(events_.get().value(), handle_, EVFILT_WRITE);
+      const auto available = co_await event;
       if (available < 0) {
         co_return { static_cast<int>(errc::cancelled), error_category() };
       }

@@ -38,9 +38,9 @@ elseif()
 endif()
 
 if(WIN32)
-  #include_directories(C:/Workspace/include/freebsd)
+  include_directories(C:/Workspace/include/freebsd)
   file(GLOB_RECURSE backend_sources src/coronet/iocp/*.h src/coronet/iocp/*.cpp
-    #src/coronet/kqueue/*.h src/coronet/kqueue/*.cpp
+    src/coronet/kqueue/*.h src/coronet/kqueue/*.cpp
   )
 else()
   file(GLOB_RECURSE backend_sources src/coronet/kqueue/*.h src/coronet/kqueue/*.cpp)

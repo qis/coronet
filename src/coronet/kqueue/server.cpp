@@ -57,6 +57,7 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
   // Accept connections.
   struct sockaddr_storage storage;
   auto addr = reinterpret_cast<struct sockaddr*>(&storage);
+  event event(events_.get().value(), handle_, EVFILT_READ);
   while (true) {
     auto socklen = static_cast<socklen_t>(sizeof(storage));
     socket socket(events_, ::accept4(handle_, addr, &socklen, SOCK_NONBLOCK));
@@ -65,7 +66,7 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
         ec_ = { errno, error_category() };
         co_return;
       }
-      const auto available = co_await queue(events_.get().value(), handle_, EVFILT_READ);
+      const auto available = co_await event;
       if (available < 0) {
         ec_ = { static_cast<int>(errc::cancelled), error_category() };
         co_return;

@@ -5,19 +5,20 @@
 
 namespace coronet {
 
-class event {
+class event final : public kevent {
 public:
   using handle_type = std::experimental::coroutine_handle<>;
 
-  event(int events, int socket, short filter) noexcept : events_(events) {
-    EV_SET(&ev_, static_cast<uintptr_t>(socket), filter, EV_ADD | EV_ONESHOT, 0, 0, this);
+  event(int events, int socket, short filter) noexcept : kevent({}), events_(events) {
+    const auto ev = static_cast<struct ::kevent*>(this);
+    const auto ident = static_cast<uintptr_t>(socket);
+    EV_SET(ev, ident, filter, EV_ADD | EV_ONESHOT, 0, 0, this);
   }
 
   event(event&& event) = delete;
-  event(const event& other) = delete;
-
   event& operator=(event&& other) = delete;
-  event& operator=(const event& other) = delete;
+
+  ~event() = default;
 
   constexpr bool await_ready() noexcept {
     return false;
@@ -25,7 +26,7 @@ public:
 
   void await_suspend(handle_type handle) noexcept {
     handle_ = handle;
-    ::kevent(events_, &ev_, 1, nullptr, 0, nullptr);
+    ::kevent(events_, this, 1, nullptr, 0, nullptr);
   }
 
   constexpr auto await_resume() noexcept {
@@ -40,12 +41,7 @@ public:
 private:
   std::int64_t result_ = 0;
   handle_type handle_ = nullptr;
-  struct kevent ev_ = {};
   int events_ = -1;
 };
-
-inline event queue(int events, int socket, short filter) noexcept {
-  return { events, socket, filter };
-}
 
 }  // namespace coronet

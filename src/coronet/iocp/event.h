@@ -22,19 +22,15 @@ public:
   }
 
   void await_suspend(handle_type handle) noexcept {
-    if (ready_) {
-      handle.resume();
-    } else {
-      handle_ = handle;
-    }
+    handle_ = handle;
   }
 
   constexpr auto await_resume() noexcept {
-    return size_;
+    return result_;
   }
 
   void operator()(DWORD size) noexcept {
-    size_ = size;
+    result_ = size;
     ready_ = true;
     if (auto handle = std::exchange(handle_, nullptr)) {
       handle.resume();
@@ -44,12 +40,12 @@ public:
   void reset() noexcept {
     static_cast<OVERLAPPED&>(*this) = {};
     ready_ = false;
-    size_ = 0;
+    result_ = 0;
   }
 
 private:
-  DWORD size_ = 0;
   bool ready_ = false;
+  DWORD result_ = 0;
   handle_type handle_ = nullptr;
 };
 
