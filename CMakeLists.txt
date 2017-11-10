@@ -54,7 +54,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src/coronet PREFIX src FILES ${sou
 
 add_library(coronet STATIC ${headers} ${sources})
 
-target_include_directories(coronet PRIVATE src PUBLIC third_party/cppcoro/include
+target_include_directories(coronet PRIVATE src PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
