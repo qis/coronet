@@ -66,6 +66,7 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
   }
 
   // Accept connections.
+  event event;
   std::array<char, salen * 2> buffer;
   while (true) {
     // Create a socket that will receive the accepted connection.
@@ -82,9 +83,9 @@ async_generator<socket> server::accept(std::size_t backlog) noexcept {
     }
 
     // Accept connection.
+    event.reset();
     DWORD bytes = 0;
     DWORD flags = 0;
-    event event;
     if (!AcceptEx(as<SOCKET>(), socket.as<SOCKET>(), buffer.data(), 0, salen, salen, &bytes, &event)) {
       if (const auto code = WSAGetLastError(); code != ERROR_IO_PENDING) {
         ec_ = { code, error_category() };

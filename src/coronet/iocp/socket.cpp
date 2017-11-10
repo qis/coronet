@@ -46,13 +46,14 @@ std::error_code socket::set(option option, bool enable) noexcept {
 
 async_generator<std::string_view> socket::recv(void* data, std::size_t size) noexcept {
   ec_.clear();
+  event event;
   WSABUF buffer = {};
   buffer.buf = reinterpret_cast<decltype(buffer.buf)>(data);
   buffer.len = static_cast<decltype(buffer.len)>(size);
   while (true) {
+    event.reset();
     DWORD bytes = 0;
     DWORD flags = 0;
-    event event;
     if (WSARecv(as<SOCKET>(), &buffer, 1, &bytes, &flags, &event, nullptr) == SOCKET_ERROR) {
       if (const auto code = WSAGetLastError(); code != ERROR_IO_PENDING) {
         ec_ = { code, error_category() };
@@ -76,12 +77,13 @@ async_generator<std::string_view> socket::recv(void* data, std::size_t size) noe
 }
 
 async<std::error_code> socket::send(std::string_view message) noexcept {
+  event event;
   WSABUF data = {};
   data.buf = reinterpret_cast<decltype(data.buf)>(const_cast<char*>(message.data()));
   data.len = static_cast<decltype(data.len)>(message.size());
   while (data.len > 0) {
+    event.reset();
     DWORD bytes = 0;
-    event event;
     if (WSASend(as<SOCKET>(), &data, 1, &bytes, 0, &event, nullptr) == SOCKET_ERROR) {
       if (const auto code = WSAGetLastError(); code != ERROR_IO_PENDING) {
         co_return std::error_code(code, error_category());

@@ -41,6 +41,12 @@ public:
     }
   }
 
+  void reset() noexcept {
+    static_cast<OVERLAPPED&>(*this) = {};
+    ready_ = false;
+    size_ = 0;
+  }
+
 private:
   DWORD size_ = 0;
   bool ready_ = false;
